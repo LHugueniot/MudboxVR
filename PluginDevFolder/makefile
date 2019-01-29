@@ -13,10 +13,11 @@
 # ==========================================================================
 #+
 
-include /opt/autodesk/mudbox2018/SDK/examples/buildconfig
+include buildconfig
+
 
 libMudboxVR.so : MudboxVR.o
-		$(CC) -o libMudboxVR.so MudboxVR.o # $(LINKFLAGS) -lMapExtractor -Wl
+		$(CC) -o libMudboxVR.so MudboxVR.o $(LINKFLAGS) #-lMapExtractor -Wl
 MudboxVR.o : MudboxVR.cpp
 
 clean :
