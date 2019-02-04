@@ -13,13 +13,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <openvr.h>
+
 using namespace mudbox;
+using namespace vr;
 
 class MudboxVR
 {
     Q_DECLARE_TR_FUNCTIONS(MudboxVR);
+
     public:
+        MudboxVR();
+        ~MudboxVR();
         static void Initializer();
         static void printMud();
+        static IVRSystem* vr_pointer;
 };
 

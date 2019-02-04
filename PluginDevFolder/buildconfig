@@ -20,9 +20,10 @@ CFLAGS    =  -fPIC -fvisibility=hidden -fno-strict-aliasing -pthread
 C++FLAGS  = $(CFLAGS) -m64 -Wno-comment -fno-gnu-keywords -Wno-multichar -Wno-sign-compare -Wno-reorder -c -DUNIX -DFUNCPROTO -D_BOOL -DOSUnix_ -DBits64_ -DNDEBUG -DPCORE_STATIC -DIL_STATIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-deprecated -D_LANGUAGE_C_PLUS_PLUS -DQ_OPENGL_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED -DQT_TABLET_SUPPORT -DQT_THREAD_SUPPORT -DQT_NO_DEBUG -DMB_USE_QT -O3 -msse3 -mfpmath=sse -fexceptions -D_FILE_OFFSET_BITS=64 -Wno-deprecated -DRedHat8_
 #-ftemplate-depth-25
 
-LINKFLAGS = -L/opt/autodesk/mudbox2018/SDK/lib -L/home/s4906706/libs/openvr/bin/linux64 -lMudboxFramework -lQtCore -lQtGui -lQtOpenGL -lQtXml -lQtNetwork -lCg -lCgGL -lopenvr_api -shared
+LINKFLAGS = -L/opt/autodesk/mudbox2018/SDK/lib -L/opt/resolve/libs  -lMudboxFramework -lQtCore -lQtGui -lQtOpenGL -lQtXml -lQtNetwork -lCg -lCgGL -lopenvr_api -shared
+#-L/home/s4906706/libs/openvr/bin/linux64
 
-INCLUDES  = -I. -I.. -I/opt/autodesk/mudbox2018/SDK/examples  -I/opt/autodesk/mudbox2018/SDK/include -I/opt/autodesk/mudbox2018/SDK/include/QtCore -I/opt/autodesk/mudbox2018/SDK/include/QtGui -I/opt/autodesk/mudbox2018/SDK/include/QtOpenGL 
+INCLUDES  = -I. -I.. -I/opt/autodesk/mudbox2018/SDK/examples  -I/opt/autodesk/mudbox2018/SDK/include -I/opt/autodesk/mudbox2018/SDK/include/QtCore -I/opt/autodesk/mudbox2018/SDK/include/QtGui -I/opt/autodesk/mudbox2018/SDK/include/QtOpenGL #-I/home/s4906706/libs/openvr/headers
 
 .cpp.o:
 		g++ -c $(INCLUDES) $(C++FLAGS) $<
