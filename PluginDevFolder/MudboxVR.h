@@ -2,7 +2,7 @@
 #if defined(JAMBUILD)
 #include <Mudbox/mudbox.h>
 #else
-#include </opt/autodesk/mudbox2018/SDK/include/Mudbox/mudbox.h>
+#include <Mudbox/mudbox.h>
 #endif
 
 #include <QObject>
@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <openvr.h>
+#include <openvr/openvr.h>
 
 using namespace mudbox;
 using namespace vr;
