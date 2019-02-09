@@ -1,32 +1,29 @@
 //#include <QtGui/QColor>
-#if defined(JAMBUILD)
-#include <Mudbox/mudbox.h>
-#else
-#include <Mudbox/mudbox.h>
-#endif
-
-#include <QObject>
-#include <QGLWidget>
-#include <QTimer>
-
-#include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-
-#include <openvr/openvr.h>
+#include <mbvr_global.h>
 
 using namespace mudbox;
-using namespace vr;
+//using namespace vr;
+
+class mbvrNode : public Node
+{
+public:
+    mbvrNode();
+    void onEvent( const EventGate &cEvent );
+    aevent m_eEachTick;
+    static vr::IVRSystem* vr_pointer;
+};
 
 class MudboxVR
 {
-    Q_DECLARE_TR_FUNCTIONS(MudboxVR);
+    Q_DECLARE_TR_FUNCTIONS(MudboxVR)
 
     public:
         MudboxVR();
         ~MudboxVR();
         static void Initializer();
+        static void startVR();
+        static void endVR();
         static void printMud();
-        static IVRSystem* vr_pointer;
-};
+        static mbvrNode* MbvrNodePtr;
 
+};

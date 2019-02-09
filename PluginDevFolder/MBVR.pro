@@ -1,8 +1,7 @@
 QT       -= gui
 TARGET = MudboxVR
 TEMPLATE = lib
-CONFIG += staticlib
-
+#CONFIG += staticlib
 
 
 DEFINES+= MUDBOXVR_LIBRARY
@@ -12,7 +11,8 @@ message($${MYUSERNAME})
 
 SOURCES += MudboxVR.cpp
 
-HEADERS += MudboxVR.h
+HEADERS += MudboxVR.h \
+    mbvr_global.h
 
 contains(MYUSERNAME,datlucien) {
         include(HomeBuild/homebuild.pri)
@@ -21,7 +21,6 @@ contains(MYUSERNAME,datlucien) {
 } else {
         include(UniBuild/unibuild.pri)
         message("unibuild")
-        #message(MYUSERNAME)
 }
 LIBS += -L$${MUDPATH}SDK/lib -lMudboxFramework -lQtCore -lQtGui -lQtOpenGL -lQtXml -lQtNetwork -lCg -lCgGL -shared -lopenvr_api
 
@@ -29,6 +28,8 @@ INCLUDEPATH += .  .. $${MUDPATH}SDK/examples $${MUDPATH}SDK/include $${MUDPATH}S
 
 
 unix {
-    libraryFiles.files += libMudboxVR.so
+    libraryFiles.files += $$PWD/libMudboxVR.so
+    message($$libraryFiles.files)
+    message($$libraryFiles.path)
     INSTALLS+= libraryFiles
 }
