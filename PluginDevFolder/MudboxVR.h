@@ -8,9 +8,14 @@ class mbvrNode : public Node
 {
 public:
     mbvrNode();
-    void onEvent( const EventGate &cEvent );
+    ~mbvrNode();
+
+    void OnEvent( const EventGate &cEvent );
+    void Shutdown();
+
     aevent m_eEachTick;
     static vr::IVRSystem* vr_pointer;
+    int framecount=0;
 };
 
 class MudboxVR
@@ -20,10 +25,14 @@ class MudboxVR
     public:
         MudboxVR();
         ~MudboxVR();
+
         static void Initializer();
         static void startVR();
         static void endVR();
-        static void printMud();
-        static mbvrNode* MbvrNodePtr;
 
+        static mbvrNode* MbvrNodePtr;
 };
+
+//--------------------------------------------General Functions--------------------------
+
+void printMud(QString msg);

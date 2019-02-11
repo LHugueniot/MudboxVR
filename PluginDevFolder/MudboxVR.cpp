@@ -29,7 +29,8 @@ void MudboxVR::startVR()
     if(MbvrNodePtr==NULL)
     {
         MbvrNodePtr=new mbvrNode;
-        Kernel()->Interface()->HUDMessageShow(tr("MudboxVR has started."), mudbox::Interface::HUDmsgFade );
+
+        printMud("MudboxVR has started.");
     }
 }
 
@@ -37,22 +38,17 @@ void MudboxVR::endVR()
 {
     if(MbvrNodePtr!=NULL)
     {
+        printMud(std::to_string(MbvrNodePtr->framecount).c_str());
         delete MbvrNodePtr;
         MbvrNodePtr=NULL;
-        Kernel()->Interface()->HUDMessageShow(tr("MudboxVR has ended."), mudbox::Interface::HUDmsgFade );
+        //Kernel()->Interface()->HUDMessageShow(tr("MudboxVR has ended."), mudbox::Interface::HUDmsgFade );
+        //printMud("MudboxVR has ended.");
     }
 }
 
-void MudboxVR::printMud()
-{
-    std::cout<<"environment works too";
-    std::cout<<"it works?";
-}
-
-
 mbvrNode::mbvrNode() : m_eEachTick(this)
 {
-    m_eEachTick.Connect(Kernel()->ViewPort()->SceneRenderEvent);
+    m_eEachTick.Connect(Kernel()->ViewPort()->FrameEvent);
 
     vr::EVRInitError eError = vr::VRInitError_None;
     vr_pointer = vr::VR_Init(&eError, vr::VRApplication_Background);
@@ -61,8 +57,54 @@ mbvrNode::mbvrNode() : m_eEachTick(this)
         vr_pointer = NULL;
         printf("Unable to init VR runtime: %s \n",
         VR_GetVRInitErrorAsEnglishDescription(eError));
-        exit(EXIT_FAILURE);
+
+        return;
+    }
+    printMud("vr initiation worked");
+}
+
+mbvrNode::~mbvrNode()
+{
+    Shutdown();
+}
+
+void mbvrNode::Shutdown()
+{
+    if (vr_pointer != NULL)
+    {
+        vr::VR_Shutdown();
+        vr_pointer = NULL;
+        printMud("Shutting VR down");
+    }
+    printMud("THE VR NEVER EXISTED");
+}
+
+void mbvrNode::OnEvent(const EventGate &cEvent)
+{
+    if(cEvent==m_eEachTick)
+    {
+        framecount++;
+        //printMud(std::to_string(framecount).c_str());
     }
 }
 
 
+
+//--------------------------------------------General Functions--------------------------
+
+
+void printMud(QString msg,...)
+{
+    va_list ap;
+    QString i;
+
+    va_start(ap, msg);
+      for (i = msg; i >= 0; i = va_arg(ap, char))
+        printf("%d ", i);
+      va_end(ap);
+      putchar('\n');
+
+
+
+    Kernel()->Interface()->HUDMessageShow(msg, mudbox::Interface::HUDmsgFade );
+}

@@ -16,6 +16,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <openvr/openvr.h>
 
