@@ -1,8 +1,9 @@
 QT       -= gui
 TARGET = MudboxVR
 TEMPLATE = lib
-#CONFIG += staticlib
+#CONFIG += c++14
 
+OTHER_FILES+= ../README.md
 
 DEFINES+= MUDBOXVR_LIBRARY
 
@@ -26,6 +27,7 @@ LIBS += -L$${MUDPATH}SDK/lib -lMudboxFramework -lQtCore -lQtGui -lQtOpenGL -lQtX
 
 INCLUDEPATH += .  .. $${MUDPATH}SDK/examples $${MUDPATH}SDK/include $${MUDPATH}SDK/include/QtCore $${MUDPATH}SDK/include/QtGui $${MUDPATH}SDK/include/QtOpenGL
 
+#QMAKE_CXXFLAGS+=-std=c++11
 
 unix {
     libraryFiles.files += $$PWD/libMudboxVR.so

@@ -11,3 +11,5 @@ uni example plugins path:  "/opt/autodesk/mudbox2018/SDK/plugins"
 uni SDK includes path:     "/opt/autodesk/mudbox2018/SDK/include/"
 
 plugin path environement variable: MUDBOX_PLUG_IN_PATH
+
+requires OpenVR v1.0.15

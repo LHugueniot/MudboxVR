@@ -93,16 +93,16 @@ void mbvrNode::OnEvent(const EventGate &cEvent)
 //--------------------------------------------General Functions--------------------------
 
 
-void printMud(QString msg,...)
+void printMud(QString msg)//,...)
 {
-    va_list ap;
-    QString i;
+//    va_list ap;
+//    QString i;
 
-    va_start(ap, msg);
-      for (i = msg; i >= 0; i = va_arg(ap, char))
-        printf("%d ", i);
-      va_end(ap);
-      putchar('\n');
+//    va_start(ap, msg);
+//      for (i = msg; i >= 0; i = va_arg(ap, char))
+//        printf("%d ", i);
+//      va_end(ap);
+//      putchar('\n');
 
 
 

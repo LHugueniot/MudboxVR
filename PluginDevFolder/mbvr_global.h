@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <openvr/openvr.h>
+#include <openvr.h>
 
 using namespace mudbox;
 //using namespace vr;
