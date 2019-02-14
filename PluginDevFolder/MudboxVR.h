@@ -1,4 +1,5 @@
 //#include <QtGui/QColor>
+
 #include <mbvr_global.h>
 
 using namespace mudbox;
@@ -32,7 +33,3 @@ class MudboxVR
 
         static mbvrNode* MbvrNodePtr;
 };
-
-//--------------------------------------------General Functions--------------------------
-
-void printMud(QString msg);

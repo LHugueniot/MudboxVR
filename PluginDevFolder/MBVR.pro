@@ -3,14 +3,16 @@ TARGET = MudboxVR
 TEMPLATE = lib
 #CONFIG += c++14
 
-OTHER_FILES+= ../README.md
+OTHER_FILES+= ../README.md \
+            /usr/autodesk/mudbox2017/SDK/examples/ImmediateModeRenderer/*
 
 DEFINES+= MUDBOXVR_LIBRARY
 
 MYUSERNAME = $$system(echo $USER)
 message($${MYUSERNAME})
 
-SOURCES += MudboxVR.cpp
+SOURCES += MudboxVR.cpp \
+    mudprint.cpp
 
 HEADERS += MudboxVR.h \
     mbvr_global.h
