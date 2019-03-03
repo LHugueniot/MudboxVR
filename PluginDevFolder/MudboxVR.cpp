@@ -9,7 +9,9 @@ MB_PLUGIN( "MudboxVR", "Test implementation of VR", "Lucien Hugueniot",
 "https://github.com/LHugueniot/MudboxVR", MudboxVR::Initializer );
 
 mbvrNode* MudboxVR::MbvrNodePtr=NULL;
-vr::IVRSystem* mbvrNode::vr_pointer=NULL;
+
+
+//----------------------------------------------------------------------MudboxVR------------------------------------------------------------------------
 
 MudboxVR::MudboxVR()
 {}
@@ -32,8 +34,17 @@ void MudboxVR::startVR()
     if(MbvrNodePtr==NULL)
     {
         MbvrNodePtr=new mbvrNode;
-
+        MbvrNodePtr->vr_pointer=NULL;
         //printMud("MudboxVR has started.");
+    }
+
+    if (vr::VR_IsHmdPresent() && vr::VR_IsRuntimeInstalled())
+    {
+        printmud( "It's all ready to run the VR application!");
+    }
+    else
+    {
+        printmud("HMDs are not present");
     }
 }
 
@@ -42,6 +53,7 @@ void MudboxVR::endVR()
     if(MbvrNodePtr!=NULL)
     {
         printmud(MbvrNodePtr->framecount);
+        MbvrNodePtr->vr_pointer=NULL;
         delete MbvrNodePtr;
         MbvrNodePtr=NULL;
         //Kernel()->Interface()->HUDMessageShow(tr("MudboxVR has ended."), mudbox::Interface::HUDmsgFade );
@@ -49,12 +61,14 @@ void MudboxVR::endVR()
     }
 }
 
+//----------------------------------------------------------------------mbvrNode------------------------------------------------------------------------
+
 mbvrNode::mbvrNode() : m_eEachTick(this)
 {
     m_eEachTick.Connect(Kernel()->ViewPort()->FrameEvent);
 
     vr::EVRInitError eError = vr::VRInitError_None;
-    vr_pointer = vr::VR_Init(&eError, vr::VRApplication_Background);
+    vr_pointer = vr::VR_Init(&eError, vr::VRApplication_Scene);
     if (eError != vr::VRInitError_None)
     {
         vr_pointer = NULL;
@@ -65,6 +79,8 @@ mbvrNode::mbvrNode() : m_eEachTick(this)
     }
     printmud("vr initiation worked");
 }
+
+
 
 mbvrNode::~mbvrNode()
 {

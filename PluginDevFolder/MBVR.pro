@@ -3,8 +3,7 @@ TARGET = MudboxVR
 TEMPLATE = lib
 #CONFIG += c++14
 
-OTHER_FILES+= ../README.md \
-            /usr/autodesk/mudbox2017/SDK/examples/ImmediateModeRenderer/*
+OTHER_FILES+= ../README.md
 
 DEFINES+= MUDBOXVR_LIBRARY
 

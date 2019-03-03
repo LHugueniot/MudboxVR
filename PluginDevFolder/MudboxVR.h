@@ -15,7 +15,7 @@ public:
     void Shutdown();
 
     aevent m_eEachTick;
-    static vr::IVRSystem* vr_pointer;
+    vr::IVRSystem* vr_pointer;
     int framecount=0;
 };
 
