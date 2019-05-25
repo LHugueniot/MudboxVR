@@ -17,11 +17,20 @@ requires OpenVR v1.0.15
 mesh renderer path:
     /usr/autodesk/mudbox2017/SDK/include/Mudbox/renderer.h
 
-xorg config file path:
-    "/etc/X11"
+windows logs path:
 
-install libusb
-install libucv https://github.com/ktossell/libuvc
-install opencv https://docs.opencv.org/trunk/d7/d9f/tutorial_linux_install.html
-sudo yum install boost-devel
-install OSVR-Core https://github.com/OSVR/OSVR-Core
+C:\Users\lucciano\Documents\Mudbox\2018-x64\data\Logs
+
+cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_PREFIX_PATH=C:\Qt\5.9.1\msvc2017_64\lib\cmake
+
+C:\Users\lucciano\Documents\openvr-master\samples\hellovr_opengl
+C:\Users\lucciano\Documents\openvr-master\samples\driver_sample
+
+C:\ExtLibs\SDL2-2.0.9\lib\x64
+C:\ExtLibs\GLEW\lib\Release\x64
+
+..\SDL2-2.0.9\include
+..\GLEW\include
+..\openvr-master\headers
+
+..\SDL2-2.0.9\lib\x64;..\GLEW\lib\Release\x64;..\openvr-master\lib\win64;

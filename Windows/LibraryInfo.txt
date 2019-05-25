@@ -1,0 +1,20 @@
+MUDBOXVR library management
+
+Lib Paths:
+
+$(MUDBOX_PATH)SDK\lib
+C:\Users\lucciano\openvr\lib\win64
+$(LibraryPath)
+
+Libs:
+
+MudboxFramework.lib
+QtCore4.lib
+qtopengl4.lib
+qtxml4.lib
+qtnetwork4.lib
+cg.lib
+cgGL.lib
+openvr_api.lib
+qtgui4.lib
+opengl32.lib
