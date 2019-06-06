@@ -16,7 +16,7 @@ namespace mudbox {
 		static void startVR();
 		static void endVR();
 
-		static mbvrNode* MbvrNodePtr;
+		static MBVRNode* MBVRNodePtr;
 	};
 
 }

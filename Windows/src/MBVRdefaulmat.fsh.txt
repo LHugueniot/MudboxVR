@@ -1,0 +1,13 @@
+#version 420 core
+in vec2 out_texcoord;
+out vec4 FragColor;
+
+uniform sampler2D texture;
+
+vec4 MudColour= vec4(0.8, 0.55, 0.25, 1.0);
+
+void main(void)
+{ 
+    FragColor = mix(texture2D(texture, out_texcoord), MudColour= 0.5);
+}
+

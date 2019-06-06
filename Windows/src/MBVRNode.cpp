@@ -7,13 +7,14 @@ namespace mudbox {
 	//--					MBVRNode Constructor				 --
 	//-------------------------------------------------------------
 
-	mbvrNode::mbvrNode() :	m_eEachTick(this),
+	MBVRNode::MBVRNode() :	m_eEachTick(this),
 							vertexArrObj(QGLBuffer::VertexBuffer),
 							vertexIndexObj(QGLBuffer::IndexBuffer),
 							vertexColoursObj(QGLBuffer::VertexBuffer)
 
 	{
 		m_eEachTick.Connect(Kernel()->ViewPort()->PostRenderEvent);
+		//Usually postrenderEvent
 
 		DEBUG("Initiating VR\n");
 		PRINT("Initiating VR");
@@ -29,12 +30,12 @@ namespace mudbox {
 	//--					MBVRNode Destructor				     --
 	//-------------------------------------------------------------
 
-	mbvrNode::~mbvrNode()
+	MBVRNode::~MBVRNode()
 	{
 		Shutdown();
 	}
 
-	bool mbvrNode::InitializeMBVR()
+	bool MBVRNode::InitializeMBVR()
 	{
 		if (!InitVR())
 		{
@@ -64,10 +65,68 @@ namespace mudbox {
 			return false;
 		}
 
+		DEBUG("Initiating VRActions\n");
+		PRINT("Initiating VRActions");
+		if (!InitVRActions())
+		{
+			DEBUG("Initialisation has failed");
+			PRINT("Initialisation has failed");
+
+			return false;
+		}
+
 		DEBUG("Initialisation has succeeded\n");
 		PRINT("Initialisation has succeeded");
 
 		return true;
+	}
+
+	//-------------------------------------------------------------
+	//-- 			Shuts down the VR and any GL dependencies    --
+	//-------------------------------------------------------------
+
+	void MBVRNode::Shutdown()
+	{
+		PRINT("Shutting VR down");
+		DEBUG("Shutting VR down");
+
+		if ((vr_pointer != NULL) && (vr_compositor != NULL))
+		{
+			vr::VR_Shutdown();
+			vr_pointer = NULL;
+			vr_compositor = NULL;
+			PRINT("VR_Shutdown");
+			DEBUG("VR_Shutdown");
+		}
+		else
+		{
+			PRINT("vr_pointer is null");
+			DEBUG("vr_pointer is null");
+			PRINT("THE VR NEVER EXISTED");
+		}
+
+		PRINT(framecount);
+		DEBUG("The framecount was: \n");
+		DEBUG(framecount);
+
+		if (Original_pos == NULL)
+		{
+			DEBUG("delete Original_pos");
+			delete Original_pos;
+		}
+
+		if (m_leftEyeTexture == NULL)
+		{
+			DEBUG("delete m_leftEyeTexture");
+			delete m_leftEyeTexture;
+		}
+
+		if (m_rightEyeTexture == NULL)
+		{
+			DEBUG("delete m_rightEyeTexture");
+			delete m_rightEyeTexture;
+		}
+
 	}
 
 	//-----------------------------------------------------------------------------
@@ -78,7 +137,7 @@ namespace mudbox {
 	//-- 			Gets called each frameEvent					 --
 	//-------------------------------------------------------------
 
-	void mbvrNode::OnEvent(const EventGate &cEvent)
+	void MBVRNode::OnEvent(const EventGate &cEvent)
 	{
 		PRINT("On event");
 
@@ -94,9 +153,16 @@ namespace mudbox {
 		if ((vr_pointer != NULL && vr_compositor!=NULL) &&  Initialized == true)
 		{
 			BREAKPOINT();
+			VRContrHandleInputs();
+			logMatrix(m_rHand[Right].m_rmat4Pose, "m_rHand[Right].m_rmat4Pose" );
+			BREAKPOINT();
 			RenderStereoTargets();
 		}
 		Kernel()->ViewPort()->Redraw();
+
+		PRINT(m_mbvrMeshes.size());
+
+		UpdateMBVRMeshes();
 
 		framecount++;
 
@@ -106,7 +172,7 @@ namespace mudbox {
 	// VR Stuff
 	//-----------------------------------------------------------------------------
 
-	bool mbvrNode::InitVR()
+	bool MBVRNode::InitVR()
 	{
 		vr::EVRInitError eError = vr::VRInitError_None;
 
@@ -124,18 +190,14 @@ namespace mudbox {
 			DEBUG(VR_GetVRInitErrorAsEnglishDescription(eError));
 			return false;
 		}
-		if (vr_pointer != NULL)
-		{
-			DEBUG("Setting Action ManifestPath \n");
-			//vr::VRInput()->SetActionManifestPath("C:/Users/lucciano/Documents/UniStuff/MudboxVR/Windows/VRActionSets/mudboxvr_actions.json");
-		}
+		
 		
 		PRINT("VR Initiation worked");
 		DEBUG("VR Initiation worked\n");
 		return true;
 	}
 
-	bool mbvrNode::InitCompositor()
+	bool MBVRNode::InitCompositor()
 	{
 		vr::EVRInitError eError = vr::VRInitError_None;
 
@@ -172,20 +234,22 @@ namespace mudbox {
 	// OpenGL Stuff
 	//-----------------------------------------------------------------------------
 
-	bool mbvrNode::InitOGL()
+	bool MBVRNode::InitOGL()
 	{
+
 		PRINT("Starting initogl");
 		DEBUG("Starting initogl\n");
+
+		QGLFormat format;
+		format.defaultFormat();
+
+		//MBVRGLContext = new QGLContext(format);
 
 		PRINT("Starting SetupVRHead");
 		DEBUG("Starting SetupVRHead\n");
 		if (!SetupVRHead())
 			return false;
 
-		PRINT("Starting SetupCameras");
-		DEBUG("Starting SetupCameras\n");
-		if (!SetupCameras())
-			return false;
 
 		PRINT("starting SetupStereoRenderTargets");
 		DEBUG("starting SetupStereoRenderTargets\n");
@@ -193,57 +257,28 @@ namespace mudbox {
 		if (!SetupStereoRenderTargets())
 			return false;
 
-
-		PRINT("starting setupGeometry");
-		DEBUG("starting setupGeometry\n");
+		PRINT("starting SetupTestGeometry");
+		DEBUG("starting SetupTestGeometry\n");
 		BREAKPOINT();
-		if (!setupGeometry())
+		if (!SetupTestGeometry())
 			return false;
 
 		return true;
 
 	}
 
-	bool mbvrNode::SetupVRHead()
+	bool MBVRNode::SetupVRHead()
 	{
 		if (vr_pointer != NULL)
 		{
-			vr_HMD = new VRHead(vr_pointer, 0.1f, Kernel()->Scene()->ActiveCamera()->Far());
+			vr_HMD = new VRHead(vr_pointer,5, 500);// Kernel()->Scene()->ActiveCamera()->Far()
 
 			return (vr_HMD->SetupEyes());
 		}
 		return false;
 	}
 
-	bool mbvrNode::SetupCameras()
-	{
-		if (vr_HMD != NULL)
-		{
-			m_leftEyeCamera = CreateInstance<MBVRCamera>();
-			
-			BREAKPOINT();
-			Kernel()->Scene()->AddCamera(m_leftEyeCamera);
-			BREAKPOINT();
-
-
-			m_rightEyeCamera = CreateInstance<MBVRCamera>();
-
-			BREAKPOINT();
-			Kernel()->Scene()->AddCamera(m_rightEyeCamera);
-			BREAKPOINT();
-
-			m_leftEyeCamera->InitVRMB(vr_HMD, vr::Eye_Left);
-			BREAKPOINT();
-			m_rightEyeCamera->InitVRMB(vr_HMD, vr::Eye_Right);
-			BREAKPOINT();
-			return true;
-
-		}
-		return false;
-
-	}
-
-	bool mbvrNode::SetupStereoRenderTargets()
+	bool MBVRNode::SetupStereoRenderTargets()
 	{
 		if (!vr_pointer)
 			return false;
@@ -281,24 +316,171 @@ namespace mudbox {
 		return true;
 	}
 
-	bool mbvrNode::CreateFrameBuffer(int _width, int _Height, FrameBufferDescriptor &frameBufferDesc)
+	void MBVRNode::RenderStereoTargets()
 	{
-		return false;
+		BREAKPOINT();
+		vr::EVRCompositorError ceError = vr::VRCompositorError_None;
+		BREAKPOINT();
+		vr_HMD->UpdateHMDMatrixPose();
+
+		//-------------------------------Left Eye--------------------------------------
+
+		//Left Eye Render
+		m_leftEyeTexture->SetAsRenderTarget();
+
+		RenderScene(vr::Eye_Left);
+
+		DEBUG(m_leftEyeTexture->RestoreRenderTarget());
+
+		//Left Eye Submission
+
+		vr::Texture_t leftEyeTexture = { (void*)m_leftEyeTexture->OpenGLName(), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+
+		ceError= vr_compositor->Submit(vr::Eye_Left, &leftEyeTexture);
+
+		//-------------------------------Right Eye---------------------------------------
+
+		//Right Eye Render
+		m_rightEyeTexture->SetAsRenderTarget();
+
+		RenderScene(vr::Eye_Right);
+
+		DEBUG(m_rightEyeTexture->RestoreRenderTarget());
+
+		//Right Eye Submission
+
+		vr::Texture_t rightEyeTexture = { (void*)m_rightEyeTexture->OpenGLName(), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+
+		ceError = vr_compositor->Submit(vr::Eye_Right, &rightEyeTexture);
 	}
 
-	bool mbvrNode::setupGeometry()
+	void MBVRNode::RenderScene(vr::Hmd_Eye nEye)
+	{
+		glViewport(0, 0, m_nRenderWidth, m_nRenderHeight);
+		glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+
+		glEnable(GL_COLOR_MATERIAL);
+		glShadeModel(GL_SMOOTH);
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glEnableClientState(GL_INDEX_ARRAY);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+
+		//glEnable(GL_DEPTH_TEST | GL_CULL_FACE);
+
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LEQUAL);
+		glDepthRange(0.0f, 1.0f);
+
+		glClearDepth(1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+		glEnable(GL_NORMALIZE);
+		DrawMBVRMesh(nEye);
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_INDEX_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+		glFlush();
+		glFinish();
+
+		//drawMudBoxGeom(nEye);
+		BREAKPOINT();
+  
+
+		BREAKPOINT();
+		
+
+		//-----------------------Projection---------------------
+
+		//glPushMatrix();
+		//{
+		//	glMatrixMode(GL_PROJECTION);
+		//	auto projection = vr_HMD->GetCurrentProjectionMatrix(nEye);
+		//	//float *fProj = (float *)malloc(16);
+		//	//
+		//	//fProj = projection;
+		//	//
+		//	glLoadMatrixf(projection);
+		//
+		//
+		//	glPushMatrix();
+		//	{
+		//		glMatrixMode(GL_MODELVIEW);
+		//		auto ModelView = vr_HMD->GetCurrentModelViewMatrix(nEye);
+		//		glLoadMatrixf(ModelView);
+		//		glScalef(0.5, 0.5, 0.5);
+		//
+		//		//DrawTestGeom();
+		//
+		//	}
+		//	glPopMatrix();
+		//
+		//	glMatrixMode(GL_PROJECTION);
+		//
+		//
+		//
+		//}
+		//glPopMatrix();
+
+
+
+		//-----------------------ModelView---------------------
+
+		//
+		//glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+		//glTexEnvi(GL_TEXTURE_2D, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		//glBindTexture(GL_TEXTURE_2D, textureObjects[BODY_TEXTURE]);
+		//
+		//glActiveTexture(GL_TEXTURE1);
+		//glEnable(GL_TEXTURE_CUBE_MAP);
+		//glActiveTexture(GL_TEXTURE0);
+		//
+		//glEnable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
+		//glBindTexture(GL_TEXTURE_2D, textureObjects[GLASS_TEXTURE]);
+	
+	}
+
+
+	//-----------------------------------------------------------------------------
+	// Geometry handling Stuff
+	//-----------------------------------------------------------------------------
+
+	void MBVRNode::DrawMBVRMesh(vr::Hmd_Eye nEye)
+	{
+		BREAKPOINT();
+		for (auto & mMesh : m_mbvrMeshes)
+		{
+			mMesh->DrawGL( MBtoQMatrix( vr_HMD->GetCurrentModelViewMatrix(nEye) ) , MBtoQMatrix( vr_HMD->GetCurrentProjectionMatrix(nEye) ), MBtoQMatrix( vr_HMD->WorldScale ));// *(vr_HMD->GetCurrentModelViewMatrix(nEye))));
+		}
+	}
+
+	bool MBVRNode::SetupTestGeometry()
 	{
 		BREAKPOINT();
 		const GLshort nNumVerts = 8;
-		
+
 		m_nNumVerts = nNumVerts;
-		
+
 		const GLshort numFaces = 2 * 6;
 		const GLshort numVertsPerFace = 3;
 
 		const GLshort TotalVerts = numFaces * numVertsPerFace;
 		m_nTotalVerts = TotalVerts;
-		GLfloat m_TestVert[nNumVerts*3]= {0,0,0,
+		GLfloat m_TestVert[nNumVerts * 3] = { 0,0,0,
 										0,10,0,
 										0,10,10,
 										0,0,10,
@@ -309,15 +491,15 @@ namespace mudbox {
 
 		BREAKPOINT();
 
-		GLfloat m_TestColours[TotalVerts *3];
+		GLfloat m_TestColours[TotalVerts * 3];
 		for (size_t i = 0; i < TotalVerts; i++) m_TestColours[i] = 0.8f;
 
 		BREAKPOINT();
 
-		GLshort m_TestIndices[TotalVerts]  = {0,3,2 , 2,1,0 ,
-									   2,6,1 , 6,5,1 , 
+		GLshort m_TestIndices[TotalVerts] = { 0,3,2 , 2,1,0 ,
+									   2,6,1 , 6,5,1 ,
 									   1,5,4 , 1,0,4 ,
-									   0,3,4 , 3,7,4 , 
+									   0,3,4 , 3,7,4 ,
 									   2,6,3 , 6,7,3 ,
 									   4,7,5 , 5,7,6 };
 
@@ -331,9 +513,9 @@ namespace mudbox {
 		// Vertex data
 		if (!vertexArrObj.bind())
 			return false;
-			vertexArrObj.setUsagePattern(QGLBuffer::DynamicDraw);
-			vertexArrObj.allocate(m_TestVert, sizeof(GLfloat) * 3 * nNumVerts);
-			BREAKPOINT();
+		vertexArrObj.setUsagePattern(QGLBuffer::DynamicDraw);
+		vertexArrObj.allocate(m_TestVert, sizeof(GLfloat) * 3 * nNumVerts);
+		BREAKPOINT();
 
 		// Texture coordinates
 		if (!vertexColoursObj.bind())
@@ -359,206 +541,10 @@ namespace mudbox {
 		return true;
 	}
 
-	void mbvrNode::RenderStereoTargets()
-	{
-		m_originalCamera = Kernel()->Scene()->ActiveCamera();
-		BREAKPOINT();
-		vr::EVRCompositorError ceError = vr::VRCompositorError_None;
-		BREAKPOINT();
-		vr_HMD->UpdateHMDMatrixPose();
-
-		m_leftEyeCamera->UpdateFromHMD();
-		m_rightEyeCamera->UpdateFromHMD();
-
-		//vr_HMD->UpdateMudboxCameras();
-		BREAKPOINT();
-
-		//-------------------------------Left Eye--------------------------------------
-
-		//Left Eye Render
-		m_leftEyeTexture->SetAsRenderTarget();
-
-		BREAKPOINT();
-
-		RenderScene(vr::Eye_Left);
-
-		DEBUG(m_leftEyeTexture->RestoreRenderTarget());
-
-		BREAKPOINT();
-		//Left Eye Submission
-
-		vr::Texture_t leftEyeTexture = { (void*)(unsigned int)m_leftEyeTexture->OpenGLName(), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-
-		BREAKPOINT();
-
-		ceError= vr_compositor->Submit(vr::Eye_Left, &leftEyeTexture);
-
-		BREAKPOINT();
-
-		//-------------------------------Right Eye---------------------------------------
-
-		//Right Eye Render
-		m_rightEyeTexture->SetAsRenderTarget();
-
-		RenderScene(vr::Eye_Right);
-
-		DEBUG(m_rightEyeTexture->RestoreRenderTarget());
-
-		//Right Eye Submission
-
-		vr::Texture_t rightEyeTexture = { (void*)(unsigned int)m_rightEyeTexture->OpenGLName(), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-
-		BREAKPOINT();
-
-		ceError = vr_compositor->Submit(vr::Eye_Right, &rightEyeTexture);
-
-		BREAKPOINT();
-
-
-		BREAKPOINT();
-
-
-		Kernel()->Scene()->SetActiveCamera(m_originalCamera);
-
-		//VRDEBUG(ceError);
-
-		//glFinish();
-		//glClearColor(0, 0, 0, 1);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//glFlush();
-		//glFinish();
-	}
-
-	void mbvrNode::RenderScene(vr::Hmd_Eye nEye)
-	{
-		glPolygonMode(GL_FRONT, GL_FILL);
-		glShadeModel(GL_SMOOTH);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
-
-		glViewport(0, 0, m_nRenderWidth, m_nRenderHeight);
-
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glEnableClientState(GL_INDEX_ARRAY);
-		BREAKPOINT();
-
-
-		//-----------------------Projection---------------------
-
-		glPushMatrix();
-		{
-			glMatrixMode(GL_PROJECTION);
-			auto projection = vr_HMD->GetCurrentProjectionMatrix(nEye);
-			float *fProj = (float *)malloc(16);
-
-			fProj = projection;
-
-			glLoadMatrixf(fProj);
-
-			logMatrix(projection, "Projection");
-
-			glPushMatrix();
-			{
-				glMatrixMode(GL_MODELVIEW);
-				auto ModelView = vr_HMD->GetCurrentModelViewMatrix(nEye);
-				float *fMV = (float *)malloc(16);
-
-				fMV = ModelView;
-
-				glLoadMatrixf(fMV);
-
-				logMatrix(ModelView, "ModelView");
-
-				glScalef(0.5, 0.5, 0.5);
-
-				drawGeom();
-				glPopMatrix();
-
-				glMatrixMode(GL_PROJECTION);
-
-			}
-			glPopMatrix();
-			BREAKPOINT();
-
-
-		}
-
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
-		glDisableClientState(GL_INDEX_ARRAY);
-
-		drawMudBoxGeom(nEye);
-		BREAKPOINT();
-
-
-		//-----------------------ModelView---------------------
-
-		//
-		//glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-		//glTexEnvi(GL_TEXTURE_2D, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		//glBindTexture(GL_TEXTURE_2D, textureObjects[BODY_TEXTURE]);
-		//
-		//glActiveTexture(GL_TEXTURE1);
-		//glEnable(GL_TEXTURE_CUBE_MAP);
-		//glActiveTexture(GL_TEXTURE0);
-		//
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
-		//glBindTexture(GL_TEXTURE_2D, textureObjects[GLASS_TEXTURE]);
-	
-	}
-
-	void mbvrNode::drawMudBoxGeom(vr::Hmd_Eye nEye)
-	{
-		//if(nEye==vr::Eye_Left)
-		//{
-		//	Kernel()->Scene()->SetActiveCamera(m_leftEyeCamera);
-		//}
-		//if (nEye == vr::Eye_Right)
-		//{
-		//	Kernel()->Scene()->SetActiveCamera(m_rightEyeCamera);
-		//}
-
-		size_t GeomCount = Kernel()->Scene()->GeometryCount();
-
-		BREAKPOINT();
-
-		for (size_t i = 0; i < GeomCount; i++)
-		{
-			BREAKPOINT();
-			Geometry * CurGeom = Kernel()->Scene()->Geometry(i);
-			BREAKPOINT();
-			Selector * selector= new Selector();
-			BREAKPOINT();
-			//CurGeom->ActiveLevel()->Renderer()->RenderData();
-			BREAKPOINT();
-			AxisAlignedBoundingBox AABB(Vector(0,0,0) , 300);
-
-			if(nEye==vr::Eye_Left)
-			{
-				BREAKPOINT();
-				Kernel()->Scene()->SetActiveCamera(m_leftEyeCamera);
-				BREAKPOINT();
-				CurGeom->ActiveLevel()->Renderer()->Render(NULL, false, m_leftEyeCamera, AABB);
-			}
-			if (nEye == vr::Eye_Right)
-			{
-				BREAKPOINT();
-				//Kernel()->Scene()->SetActiveCamera(m_rightEyeCamera);
-				BREAKPOINT();
-				CurGeom->ActiveLevel()->Renderer()->Render(NULL, false, m_rightEyeCamera, AABB);
-			}
-
-
-		}
-
-	}
-
-	void mbvrNode::drawGeom()
+	void MBVRNode::DrawTestGeom()
 	{
 
+		//Simple Triangle at center of scene
 		glBegin(GL_TRIANGLES);
 
 		glColor4f(1.f, 0.f, 0.f, 1.f);
@@ -572,7 +558,7 @@ namespace mudbox {
 
 		glEnd();
 
-		BREAKPOINT();
+		//Simple Box with data sent on GPU
 
 		// Vertexes
 		vertexArrObj.bind();
@@ -596,177 +582,268 @@ namespace mudbox {
 
 	}
 
-
-
-	//-------------------------------------------------------------
-	//-- 			Shuts down the VR and any GL dependencies    --
-	//-------------------------------------------------------------
-	
-	void mbvrNode::Shutdown()
+	void MBVRNode::UpdateMBVRMeshes()
 	{
-		PRINT("Shutting VR down");
-		DEBUG("Shutting VR down");
-	
-		if ((vr_pointer != NULL) && (vr_compositor !=NULL))
+		unsigned int geomCount = Kernel()->Scene()->GeometryCount();
+		if (geomCount != m_mbvrMeshes.size())
 		{
-			vr::VR_Shutdown();
-			vr_pointer = NULL;
-			vr_compositor = NULL;
-			PRINT("VR_Shutdown");
-			DEBUG("VR_Shutdown");
+			BREAKPOINT();
+
+			if (geomCount > m_mbvrMeshes.size())
+			{
+				BREAKPOINT();
+				for (unsigned int i = 0; i < geomCount; i++)
+				{
+					BREAKPOINT();
+					bool GeomIsRegistered = false;
+					for (unsigned int j = 0; j < m_mbvrMeshes.size(); j++)
+					{
+						BREAKPOINT();
+						if (Kernel()->Scene()->Geometry(i) == &m_mbvrMeshes[j]->getGeometry()) GeomIsRegistered = true;
+					}
+					if (GeomIsRegistered == false)
+					{
+						
+						auto temp = new MBVRMesh(); BREAKPOINT();
+						m_mbvrMeshes.push_back(temp);
+						temp->GeomInitialize(Kernel()->Scene()->Geometry(i));
+						BREAKPOINT();
+					}
+				}
+				BREAKPOINT();
+
+			}
+			else
+			{
+				for (size_t k = 0; k < m_mbvrMeshes.size(); k++)
+				{
+					BREAKPOINT();
+					if (!m_mbvrMeshes[k]->CheckIfGeomStillExists()) delete m_mbvrMeshes[k];
+				}
+			}
 		}
-		else 
-		{
-			PRINT("vr_pointer is null");
-			DEBUG("vr_pointer is null");
-			PRINT("THE VR NEVER EXISTED");
-		}
-	
-		PRINT(framecount);
-		DEBUG("The framecount was: \n");
-		DEBUG(framecount);
-		
-		if (Original_pos == NULL)
-		{
-			DEBUG("delete Original_pos");
-			delete Original_pos;
-		}
-	
-		if (m_leftEyeTexture==NULL)
-		{
-			DEBUG("delete m_leftEyeTexture");
-			delete m_leftEyeTexture;
-		}
-		
-		if (m_rightEyeTexture == NULL)
-		{
-			DEBUG("delete m_rightEyeTexture");
-			delete m_rightEyeTexture;
-		}
-	
 	}
 
+	
 
-	//void mbvrNode::RenderScene(vr::Hmd_Eye nEye)
-	//{
-	//
-	//
-	//	auto mat = vr_HMD->GetHMDMatrixPoseEye(nEye);
-	//	Kernel()->Scene()->ActiveCamera()->SetPosition(Vector(mat._13, mat._23, mat._33));
-	//	//Kernel()->Scene()->ActiveCamera()->SetAim(Vector(mat._12, mat._22, mat._23));
-	//
-	//	auto rotation = vr_HMD->GetRotation();
-	//
-	//	Kernel()->Scene()->ActiveCamera()->SetYawPitchRoll(Vector(-rotation.x * rotation.w,
-	//		-rotation.y * rotation.w,
-	//		-rotation.z * rotation.w));
-	//	glPolygonMode(GL_FRONT, GL_FILL);
-	//	glShadeModel(GL_SMOOTH);
-	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//	glEnable(GL_DEPTH_TEST);
-	//
-	//
-	//	//		gluLookAt(mat._13, mat._23, mat._33,
-	//	//			mat._12, mat._22, mat._23,
-	//	//			mat._11, mat._11, mat._11);
-	//
-	//	glViewport(0, 0, m_nRenderWidth, m_nRenderHeight);
-	//
-	//	glBegin(GL_TRIANGLES);
-	//
-	//	glColor4f(1.f, 0.f, 0.f, 1.f);
-	//	glVertex3f(0, 0, 0);
-	//
-	//	glColor4f(0.f, 1.f, 0.f, 1.f);
-	//	glVertex3f(.5, .5, 0);
-	//
-	//	glColor4f(0.f, 0.f, 1.f, 1.f);
-	//	glVertex3f(0, 1, 0);
-	//
-	//	glEnd();
-	//
-	//
-	//}
-	//
-	//void mbvrNode::RenderStereoTargets()
-	//{
-	//	MBVRGLDebug();
-	//	vr::EVRCompositorError ceError = vr::VRCompositorError_None;
-	//
-	//	DEBUG("left eye texture size");
-	//	DEBUG(m_leftEyeTexture->VideoMemoryUsage());
-	//
-	//
-	//
-	//	vr_HMD->UpdateHMDMatrixPose();
-	//	//vr::VRCompositor()->ClearLastSubmittedFrame();
-	//
-	//	breakPoint(1, __FUNCTION__);
-	//
-	//	//Left Eye
-	//
-	//	m_leftEyeTexture->SetAsRenderTarget();
-	//
-	//	breakPoint(2, __FUNCTION__);
-	//
-	//	RenderScene(vr::Eye_Left);
-	//
-	//	breakPoint(3, __FUNCTION__);
-	//
-	//	vr::Texture_t leftEyeTexture = { (void*)(unsigned int)m_leftEyeTexture->OpenGLName(), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-	//	DEBUG("left eye texture openglname");
-	//	DEBUG(m_leftEyeTexture->OpenGLName());
-	//
-	//	breakPoint(4, __FUNCTION__);
-	//
-	//	ceError = vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-	//
-	//	breakPoint(5, __FUNCTION__);
-	//
-	//	DEBUG("restoring m_leftEyeTexture render target");
-	//	DEBUG(m_leftEyeTexture->RestoreRenderTarget());
-	//
-	//	//m_leftEyeTexture->RestoreRenderTarget();
-	//
-	//
-	//	breakPoint(6, __FUNCTION__);
-	//
-	//	if (ceError != vr::VRCompositorError_None)
-	//	{
-	//		PRINT("Compositor submission failed\n");
-	//		DEBUG("Compositor submission failed\n");
-	//		DEBUG(getCompositorErrorAsString(ceError));
-	//	}
-	//
-	//	//Right Eye
-	//
-	//	m_rightEyeTexture->SetAsRenderTarget();
-	//	RenderScene(vr::Eye_Right);
-	//
-	//	vr::Texture_t rightEyeTexture = { (void*)(unsigned int)m_rightEyeTexture->OpenGLName(), vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-	//	DEBUG("right eye texture openglname");
-	//	DEBUG(m_rightEyeTexture->OpenGLName());
-	//
-	//	ceError = vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
-	//
-	//	//m_rightEyeTexture->RestoreRenderTarget();
-	//
-	//
-	//	DEBUG("restoring m_leftEyeTexture render target");
-	//	DEBUG(m_rightEyeTexture->RestoreRenderTarget());
-	//
-	//	if (ceError != vr::VRCompositorError_None)
-	//	{
-	//		PRINT("Compositor submission failed\n");
-	//		DEBUG("Compositor submission failed\n");
-	//		DEBUG(getCompositorErrorAsString(ceError));
-	//	}
-	//
-	//	glFinish();
-	//	glClearColor(0, 0, 0, 1);
-	//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//	glFlush();
-	//	glFinish();
-	//}
+	//----------------------------------------------------Controller Code----------------------------------------------
+
+	bool MBVRNode::InitVRActions()
+	{
+
+		vr::EVRInitError eError = vr::VRInitError_None;
+		vr::EVRInputError inputError = vr::VRInputError_None;
+
+		if (vr_pointer != NULL)
+		{
+			DEBUG("Setting Action ManifestPath \n");
+			inputError = vr::VRInput()->SetActionManifestPath("C:/Users/lucciano/Documents/UniStuff/MudboxVR/Windows/VRActionSets/mudboxvr_actions.json");
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/in/HideCubes", &m_actionToggleWireframe);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/in/HideCubes", &m_actionHideCubes);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/in/HideThisController", &m_actionHideThisController);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/in/TriggerHaptic", &m_actionTriggerHaptic);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/in/AnalogInput", &m_actionAnalongInput);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+
+			inputError = vr::VRInput()->GetActionSetHandle("/actions/demo", &m_actionsetDemo);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/out/Haptic_Left", &m_rHand[Left].m_actionHaptic);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetInputSourceHandle("/user/hand/left", &m_rHand[Left].m_source);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/in/Hand_Left", &m_rHand[Left].m_actionPose);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/out/Haptic_Right", &m_rHand[Right].m_actionHaptic);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetInputSourceHandle("/user/hand/right", &m_rHand[Right].m_source);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+			inputError = vr::VRInput()->GetActionHandle("/actions/demo/in/Hand_Right", &m_rHand[Right].m_actionPose);
+			if (inputError != vr::VRInputError_None) { VR_INPUT_DEBUG(inputError); return false; }
+
+			return true;
+
+		}
+		return false;
+	}
+
+	void MBVRNode::ProcessVREvent(vr::VREvent_t vr_event)
+	{
+		switch (vr_event.eventType)
+		{
+			//VR Controller Events
+
+		case vr::VREvent_ButtonPress:
+			printf("EVENT (OpenVR) Device : %d attached\n", vr_event.trackedDeviceIndex);
+
+			vr_event.data.controller.button;
+			switch (vr_event.data.controller.button)
+			{
+
+				//VR Controller Grip Event
+
+			case vr::k_EButton_Grip:
+				switch (vr_event.eventType) {
+				case vr::VREvent_ButtonPress:
+					DEBUG("k_EButton_Grip VREvent_ButtonPress");
+					break;
+				case vr::VREvent_ButtonUnpress:
+					DEBUG("k_EButton_Grip VREvent_ButtonUnpress");
+					break;
+				}
+				break;
+
+				//VR Controller Trigger Event
+
+			case  vr::k_EButton_SteamVR_Trigger:
+				switch (vr_event.eventType) {
+				case vr::VREvent_ButtonPress:
+					DEBUG("k_EButton_SteamVR_Trigger VREvent_ButtonUnpress");
+					break;
+
+				case vr::VREvent_ButtonUnpress:
+					DEBUG("k_EButton_SteamVR_Trigger VREvent_ButtonUnpress");
+					break;
+				}
+				break;
+
+				//VR Controller Touchpad Event
+
+			case vr::k_EButton_SteamVR_Touchpad:
+				switch (vr_event.eventType) {
+				case vr::VREvent_ButtonPress:
+					DEBUG("k_EButton_SteamVR_Touchpad VREvent_ButtonPress");
+					break;
+
+				case vr::VREvent_ButtonUnpress:
+					DEBUG("k_EButton_SteamVR_Touchpad VREvent_ButtonUnpress");
+					break;
+
+				case vr::VREvent_ButtonTouch:
+					DEBUG("k_EButton_SteamVR_Touchpad VREvent_ButtonTouch");
+					break;
+
+				case vr::VREvent_ButtonUntouch:
+					DEBUG("k_EButton_SteamVR_Touchpad VREvent_ButtonUntouch");
+					break;
+				}
+				break;
+
+				//VR Controller Touchpad Event
+
+			case vr::k_EButton_ApplicationMenu:
+				switch (vr_event.eventType) {
+				case vr::VREvent_ButtonPress:
+					break;
+
+				case vr::VREvent_ButtonUnpress:
+					break;
+				}
+				break;
+			}
+
+			break;
+
+			//and so on, can test for any amount of vr events
+
+			//Any other Events
+
+		}
+	}
+
+	void MBVRNode::VRContrHandleInputs()
+	{
+
+		//Handle Button Events
+
+		vr::VREvent_t event;
+
+		while (vr_pointer->PollNextEvent(&event, sizeof(event)))
+		{
+			ProcessVREvent(event);
+		}
+
+		vr::VRActiveActionSet_t actionSet = { 0 };
+		actionSet.ulActionSet = m_actionsetDemo;
+		vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
+
+		BWireframe = !GetDigitalActionState(m_actionToggleWireframe);
+
+		vr::VRInputValueHandle_t ulHapticDevice;
+		if (GetDigitalActionRisingEdge(m_actionToggleWireframe, &ulHapticDevice))
+		{
+			if (ulHapticDevice == m_rHand[Left].m_source)
+			{
+				vr::VRInput()->TriggerHapticVibrationAction( m_rHand[Left].m_actionHaptic, 0, 1, 4.f, 1.0f, vr::k_ulInvalidInputValueHandle );
+			}
+			if (ulHapticDevice == m_rHand[Right].m_source)
+			{
+				vr::VRInput()->TriggerHapticVibrationAction(m_rHand[Right].m_actionHaptic, 0, 1, 4.f, 1.0f, vr::k_ulInvalidInputValueHandle);
+			}
+		}
+
+		//Get Controller Positions
+
+		m_rHand[Left].m_bShowController = true;
+		m_rHand[Right].m_bShowController = true;
+
+		vr::VRInputValueHandle_t ulHideDevice;
+
+		if (GetDigitalActionState(m_actionHideThisController, &ulHideDevice))
+		{
+			if (ulHideDevice == m_rHand[Left].m_source)
+			{
+				m_rHand[Left].m_bShowController = false;
+			}
+			if (ulHideDevice == m_rHand[Right].m_source)
+			{
+				m_rHand[Right].m_bShowController = false;
+			}
+		}
+
+		for (EHand eHand = Left; eHand <= Right; ((int&)eHand)++)
+		{
+			vr::InputPoseActionData_t poseData;
+			if (vr::VRInput()->GetPoseActionData(m_rHand[eHand].m_actionPose, vr::TrackingUniverseStanding, 0, &poseData, sizeof(poseData),  vr::k_ulInvalidInputValueHandle) 
+				!= vr::VRInputError_None
+				|| !poseData.bActive 
+				|| !poseData.pose.bPoseIsValid)
+			{
+
+				VR_INPUT_DEBUG(vr::VRInput()->GetPoseActionData(m_rHand[eHand].m_actionPose, vr::TrackingUniverseStanding, 0, &poseData, sizeof(poseData), vr::k_ulInvalidInputValueHandle));
+				DEBUG(!poseData.bActive);
+				DEBUG(!poseData.pose.bPoseIsValid);
+
+				m_rHand[eHand].m_bShowController = false;
+				DEBUG("m_rHand[eHand].m_bShowController = false");
+			}
+			else
+			{
+				m_rHand[eHand].m_rmat4Pose = ConvertSteamVRMatrixToMatrix(poseData.pose.mDeviceToAbsoluteTracking);
+				DEBUG("Updating Position");
+
+				vr::InputOriginInfo_t originInfo;
+				if (vr::VRInput()->GetOriginTrackedDeviceInfo(poseData.activeOrigin, &originInfo, sizeof(originInfo)) == vr::VRInputError_None
+					&& originInfo.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid)
+				{
+					//std::string sRenderModelName = GetTrackedDeviceString(originInfo.trackedDeviceIndex, vr::Prop_RenderModelName_String);
+					//if (sRenderModelName != m_rHand[eHand].m_sRenderModelName)
+					//{
+					//	m_rHand[eHand].m_pRenderModel = FindOrLoadRenderModel(sRenderModelName.c_str());
+					//	m_rHand[eHand].m_sRenderModelName = sRenderModelName;
+					//}
+				}
+			}
+		}
+
+	}
+	
 
 }

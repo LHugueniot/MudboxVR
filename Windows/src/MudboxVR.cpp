@@ -6,10 +6,16 @@ namespace mudbox {
 	MB_PLUGIN("MudboxVR", "Test implementation of VR", "Lucien Hugueniot",
 		"https://github.com/LHugueniot/MudboxVR", MudboxVR::Initializer);
 
-	mbvrNode* MudboxVR::MbvrNodePtr = NULL;
-	vr::IVRSystem * mbvrNode::vr_pointer = NULL;
-	vr::IVRCompositor * mbvrNode::vr_compositor = NULL;
+	MBVRNode* MudboxVR::MBVRNodePtr = NULL;
+	QGLContext * MBVRNode::MBVRGLContext = NULL;
+	vr::IVRSystem * MBVRNode::vr_pointer = NULL;
+	vr::IVRCompositor * MBVRNode::vr_compositor = NULL;
 	//----------------------------------------------------------------------MudboxVR------------------------------------------------------------------------
+
+	//void OutputGLState()
+	//{
+	//	glGetBooleanv(GL_ALPHA_TEST, );
+	//}
 
 	MudboxVR::MudboxVR()
 	{}
@@ -20,7 +26,7 @@ namespace mudbox {
 	void MudboxVR::Initializer()
 	{
 
-		mbvrNode::InitCompositor();
+		MBVRNode::InitCompositor();
 
 		Kernel()->Interface()->AddCallbackMenuItem(mudbox::Interface::menuEdit,
 			QString::null, "Start VR", MudboxVR::startVR);
@@ -36,12 +42,12 @@ namespace mudbox {
 	{
 		printMud( "It's all ready to run the VR application!");
 	
-	    if (MbvrNodePtr == NULL)
+	    if (MBVRNodePtr == NULL)
 	    {
-			MbvrNodePtr = new mbvrNode;
+			MBVRNodePtr = new MBVRNode;
 		    printMud("MudboxVR has started.");
 	    }
-		if (MbvrNodePtr->Initialized == false)
+		if (MBVRNodePtr->Initialized == false)
 		{
 			endVR();
 		}
@@ -50,14 +56,14 @@ namespace mudbox {
 
 	void MudboxVR::endVR()
 	{
-		if(MbvrNodePtr!=NULL)
+		if(MBVRNodePtr!=NULL)
 		{
 
-		    logMud(MbvrNodePtr->framecount);
-			logMud(MbvrNodePtr->tick);
+		    logMud(MBVRNodePtr->framecount);
+			logMud(MBVRNodePtr->tick);
 
-		    delete MbvrNodePtr;
-		    MbvrNodePtr=NULL;
+		    delete MBVRNodePtr;
+		    MBVRNodePtr=NULL;
 		    
 			printMud("MudboxVR has ended.");
 		}

@@ -1,5 +1,5 @@
 #pragma once
-#include <mbvr_global.h>
+#include "MBVRMesh.h"
 
 namespace mudbox 
 {
@@ -10,8 +10,6 @@ namespace mudbox
 		~VRHead();
 		bool SetupEyes();
 		void UpdateHMDMatrixPose();
-		//void UpdateMudboxCameras();
-		//Camera* GetCamera(vr::Hmd_Eye nEye);
 
 		//Real Time Updates
 		Matrix GetHMDMatrixPoseEye(vr::Hmd_Eye nEye);
@@ -25,6 +23,8 @@ namespace mudbox
 		vr::HmdQuaternion_t GetRotation();
 		Vector GetPosition(vr::Hmd_Eye nEye);
 
+		//Matrix GetControllerPose(EHand hand);
+
 		vr::IVRSystem* m_vrHeadPtr;
 
 		float m_fNearClip, m_fFarClip;
@@ -34,11 +34,11 @@ namespace mudbox
 		Matrix m_mat4eyePosLeft;
 		Matrix m_mat4eyePosRight;
 
-		
-
 		Matrix m_mat4ProjectionCenter;
 		Matrix m_mat4ProjectionLeft;
 		Matrix m_mat4ProjectionRight;
+
+		Matrix WorldScale;
 
 		vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
 
@@ -56,7 +56,7 @@ namespace mudbox
 	public:
 		MBVRCamera(void);
 
-		void InitVRMB(VRHead *_headPtr, vr::EVREye nEye);
+		void InitVRMB(VRHead *_headPtr, vr::EVREye nEye, Camera * _originalPointer);
 
 		void UpdateFromHMD(void);
 
@@ -340,6 +340,7 @@ namespace mudbox
 		virtual void SetDirty(bool bDirty);
 
 	private:
+		Camera * m_originalCamera;
 
 		VRHead *m_headPtr;
 		vr::EVREye m_nEye;

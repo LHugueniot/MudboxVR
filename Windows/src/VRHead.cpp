@@ -7,6 +7,10 @@ namespace mudbox
 		m_fNearClip(_fNearClip),
 		m_fFarClip(_fFarClip)
 	{
+		WorldScale = { 1.0f, 0.f, 0.f, 0.f,
+					  0.f, 1.0f, 0.f, 0.f,
+					  0.f, 0.f, 1.0f, 0.f,
+					  0.f, 0.f, 0.f,  1.f};
 		std::string Dimensions("m_fNearClip " + std::to_string(m_fNearClip)+ " m_fFarClip " + std::to_string(m_fFarClip) + "\n");
 		PRINT(Dimensions);
 		DEBUG(Dimensions);
@@ -32,61 +36,10 @@ namespace mudbox
 		return true;
 	}
 
-	//void VRHead::UpdateMudboxCameras()
+	//Matrix VRHead::GetControllerPose(EHand hand)
 	//{
-	//	auto tempPose = m_mat4HMDPose;
-	//	//Left Eye Pos
-	//	BREAKPOINT();
-	//	Matrix left_Pose = m_mat4eyePosLeft * m_mat4HMDPoseNonInverted;
-	//	float MovementSpeed = 1000;
-	//	BREAKPOINT();
-	//
-	//	m_leftCameraPosition.m_fX = left_Pose._41*MovementSpeed;
-	//	m_leftCameraPosition.m_fY = left_Pose._42*MovementSpeed;
-	//	m_leftCameraPosition.m_fZ = left_Pose._43*MovementSpeed;
-	//
-	//	//Right Eye Pos
-	//	Matrix right_Pose = m_mat4eyePosRight * tempPose;
-	//
-	//	m_rightCameraPosition.m_fX = right_Pose._41*MovementSpeed;
-	//	m_rightCameraPosition.m_fY = right_Pose._42*MovementSpeed;
-	//	m_rightCameraPosition.m_fZ = right_Pose._43*MovementSpeed;
-	//
-	//	auto newLeftPos = m_leftCameraPosition + m_originalPosition;
-	//	auto newRightPos = m_rightCameraPosition + m_originalPosition;
-	//	logMud(newLeftPos.x);
-	//	logMud(newLeftPos.y);
-	//	logMud(newLeftPos.z);
-	//
-	//	//Forwards Up Right Directions
-	//					   
-	//	m_cameraForwardsDir.m_fX = m_mat4HMDPoseNonInverted._31;
-	//	m_cameraForwardsDir.m_fY = m_mat4HMDPoseNonInverted._32;
-	//	m_cameraForwardsDir.m_fZ = m_mat4HMDPoseNonInverted._33;
-	//
-	//	m_cameraUpDir.m_fX = m_mat4HMDPoseNonInverted._21;
-	//	m_cameraUpDir.m_fY = m_mat4HMDPoseNonInverted._22;
-	//	m_cameraUpDir.m_fZ = m_mat4HMDPoseNonInverted._23;
-	//
-	//	m_cameraRightDir.m_fX = -m_mat4HMDPoseNonInverted._11;
-	//	m_cameraRightDir.m_fY = -m_mat4HMDPoseNonInverted._12;
-	//	m_cameraRightDir.m_fZ = -m_mat4HMDPoseNonInverted._13;
 	//
 	//}
-	//
-	//Camera* VRHead::GetCamera(vr::Hmd_Eye nEye)
-	//{
-	//	if (nEye == vr::Eye_Left)
-	//	{
-	//		return m_leftCamera;
-	//	}
-	//	else if (nEye == vr::Eye_Right)
-	//	{
-	//		return m_rightCamera;
-	//	}
-	//	return NULL;
-	//}
-
 	//-----------------------------------------------------------------------------
 	// Purpose: Gets an HMDMatrixPoseEye with respect to nEye.
 	//-----------------------------------------------------------------------------
@@ -175,18 +128,7 @@ namespace mudbox
 	//-----------------------------------------------------------------------------
 	Matrix VRHead::GetCurrentModelViewMatrix(vr::Hmd_Eye nEye)
 	{
-		Matrix matMV;
-
-		if (nEye == vr::Eye_Left)
-		{
-			matMV = m_mat4HMDPose;// m_mat4eyePosLeft * m_mat4HMDPose;
-		}
-		else if (nEye == vr::Eye_Right)
-		{
-			matMV = m_mat4HMDPose;//m_mat4eyePosRight *  m_mat4HMDPose;
-		}
-
-		return matMV;
+		return m_mat4HMDPose;
 	}
 
 	//-----------------------------------------------------------------------------
@@ -257,14 +199,11 @@ namespace mudbox
 		if (m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
 		{
 			m_mat4HMDPose = m_rmat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd];
-			BREAKPOINT();
 			m_mat4HMDPose._41 *= 100;
-			BREAKPOINT();
 			m_mat4HMDPose._42 *= 100;
-			BREAKPOINT();
 			m_mat4HMDPose._43 *= 100;
-			BREAKPOINT();
 			m_mat4HMDPose.Invert();
+			//m_mat4HMDPose = WorldScale * m_mat4HMDPose;
 		}
 	}
 
@@ -286,9 +225,13 @@ namespace mudbox
 	{
 	}
 
-	void MBVRCamera::InitVRMB(VRHead *_headPtr, vr::EVREye nEye)
+	void MBVRCamera::InitVRMB(VRHead *_headPtr, vr::EVREye nEye, Camera * _originalPointer)
 	{
 		BREAKPOINT();
+		if (_originalPointer != NULL)
+		{
+			m_originalCamera = _originalPointer;
+		}
 		if (_headPtr != NULL)
 		{
 			BREAKPOINT();
@@ -380,7 +323,7 @@ namespace mudbox
 
 			float Roll = asin(m_UpDir.m_fX * planeRightX + m_UpDir.m_fY * planeRightY);
 			BREAKPOINT();
-			if (m_UpDir.m_fZ < 0){ float sign = 1; m_Roll = copysign(Roll, sign) * M_PI - Roll; }
+			//if (m_UpDir.m_fZ < 0){ float sign = 1; m_Roll = copysign(Roll, sign) * M_PI - Roll; }
 			BREAKPOINT();
 
 			m_MVP = m_headPtr->GetCurrentViewProjectionMatrix(m_nEye);
@@ -510,14 +453,15 @@ namespace mudbox
 
 	Vector  MBVRCamera::Project( const Vector &vWorldPosition ) const
 	{
+		
 		BREAKPOINT();
-		return Vector(0,0,0);
+		return m_originalCamera->Project(vWorldPosition);
 	}
 
 	Vector MBVRCamera::UnProject( const Vector &vScreenPosition ) const
 	{
 		BREAKPOINT();
-		return Vector(0,0,0);
+		return m_originalCamera->UnProject(vScreenPosition);
 	}
 	
 	mudbox::Matrix MBVRCamera::Matrix( bool bOffscreen) const
@@ -528,6 +472,8 @@ namespace mudbox
 		mudbox::Matrix Projection = m_headPtr->GetCurrentProjectionMatrix(m_nEye);
 		BREAKPOINT();
 		mudbox::Matrix MVP= ModelView * Projection;
+
+		logMatrix(MVP, __FUNCTION__);
 		BREAKPOINT();
 		return (MVP);
 	}
@@ -631,13 +577,13 @@ namespace mudbox
 	bool MBVRCamera::Pick( float fXPosition, float fYPosition, SurfacePoint &sResult )
 	{
 		BREAKPOINT();
-		return false;
+		return m_originalCamera->Pick(fXPosition, fYPosition, sResult);
 	}
 	
 	ScreenSpacePicker * MBVRCamera::GetScreenSpacePicker() const
 	{
 		BREAKPOINT();
-		return new ScreenSpacePicker();
+		return m_originalCamera->GetScreenSpacePicker();
 	}
 
 	Vector  MBVRCamera::Aim() const

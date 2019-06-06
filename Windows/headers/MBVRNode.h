@@ -1,16 +1,16 @@
 #pragma once
 #include "VRViewport.h"
-
-
+#include "MBVRMesh.h"
+#include <unordered_set>
 namespace mudbox {
 
-	//----------------------------------------------------------------------mbvrNode------------------------------------------------------------------------
+	//----------------------------------------------------------------------MBVRNode------------------------------------------------------------------------
 
-	class mbvrNode : public Node
+	class MBVRNode : public Node
 	{
 	public:
-		mbvrNode();
-		~mbvrNode();
+		MBVRNode();
+		~MBVRNode();
 
 		void Shutdown();
 
@@ -28,9 +28,9 @@ namespace mudbox {
 
 		void OnEvent(const EventGate &cEvent);
 
-
 		aevent m_eEachTick;
 		aevent frameUpdate;
+		aevent m_newMeshAdded;
 		uint framecount=0;
 		uint tick=0;
 
@@ -64,15 +64,13 @@ namespace mudbox {
 
 		bool SetupVRHead();
 
-		bool SetupCameras();
-
 		bool SetupStereoRenderTargets();
-
-		bool CreateFrameBuffer(int _width, int _Height, FrameBufferDescriptor &frameBufferDesc);
 
 		void RenderStereoTargets();
 
 		void RenderScene(vr::Hmd_Eye nEye);
+
+		static QGLContext * MBVRGLContext;
 
 		Texture* m_leftEyeTexture;
 		GLuint m_leftEyeID;
@@ -82,15 +80,21 @@ namespace mudbox {
 
 		Camera * m_originalCamera;
 
-		MBVRCamera * m_leftEyeCamera;
-		MBVRCamera * m_rightEyeCamera;
+		bool BWireframe;
 
-		//----------------------Geometry handling temporary------------------------
+
+		//-----------------------------------------------------------------------------
+		// Geometry handling Stuff
+		//-----------------------------------------------------------------------------
 	public:
 
-		bool setupGeometry();
-		void drawGeom();
-		void drawMudBoxGeom(vr::Hmd_Eye nEye);
+		bool SetupTestGeometry();
+
+		void DrawTestGeom();
+
+		void DrawMBVRMesh(vr::Hmd_Eye nEye);
+
+		void UpdateMBVRMeshes();
 
 		uint m_nNumVerts;
 		GLshort m_nTotalVerts;
@@ -100,60 +104,42 @@ namespace mudbox {
 		QGLBuffer vertexColoursObj;
 
 
-		//void RenderScene(vr::Hmd_Eye nEye);
+		std::vector<VRMesh*> m_mbvrMeshes;
 
 
-		//std::string m_strPoseClasses;
-		//char m_rDevClassChar[vr::k_unMaxTrackedDeviceCount];
-		//SDL Stuff
+		//-----------------------------------------------------------------------------
+		// VR controller Stuff
+		//-----------------------------------------------------------------------------
+	public:
 
-		//GLuint m_unSceneProgramID;
-		//GLuint m_unCompanionWindowProgramID;
-		//GLuint m_unControllerTransformProgramID;
-		//GLuint m_unRenderModelProgramID;
-		//
-		//GLint m_nSceneMatrixLocation;
-		//GLint m_nControllerMatrixLocation;
-		//GLint m_nRenderModelMatrixLocation;
+		bool InitVRActions();
 
-		//struct FramebufferDesc
+		void VRContrHandleInputs();
+
+		void ProcessVREvent(vr::VREvent_t vr_event);
+
+
+		ControllerInfo_t m_rHand[2];
+
+		//Other Actions
+
+		vr::VRActionHandle_t m_actionToggleWireframe = vr::k_ulInvalidActionHandle;
+		vr::VRActionHandle_t m_actionHideCubes = vr::k_ulInvalidActionHandle;
+		vr::VRActionHandle_t m_actionHideThisController = vr::k_ulInvalidActionHandle;
+		vr::VRActionHandle_t m_actionTriggerHaptic = vr::k_ulInvalidActionHandle;
+		vr::VRActionHandle_t m_actionAnalongInput = vr::k_ulInvalidActionHandle;
+
+		vr::VRActionSetHandle_t m_actionsetDemo = vr::k_ulInvalidActionSetHandle;
+
+		//enum ActionMode
 		//{
-		//	GLuint m_nDepthBufferId;
-		//	GLuint m_nRenderTextureId;
-		//	GLuint m_nRenderFramebufferId;
-		//	GLuint m_nResolveTextureId;
-		//	GLuint m_nResolveFramebufferId;
-		//};
-		//FramebufferDesc leftEyeDesc;
-		//FramebufferDesc rightEyeDesc;
-		//
-		//bool CreateFrameBuffer(int nWidth, int nHeight, FramebufferDesc &framebufferDesc);
-		//
-		//struct Vector2
-		//{
-		//	float x;
-		//	float y;
-		//	Vector2(float _x, float _y) {
-		//		x = _x;  y = _y;
-		//	}
+		//	None,
+		//	Paint,
+		//	Transform,
+		//	Model
 		//};
 		//
-		//struct VertexDataWindow
-		//{
-		//	Vector2 position;
-		//	Vector2 texCoord;
-		//
-		//	VertexDataWindow(const Vector2 & pos, const Vector2 tex) : position(pos), texCoord(tex) {	}
-		//};
-
-		//GLuint m_glSceneVertBuffer;
-		//GLuint m_unSceneVAO;
-		//GLuint m_unCompanionWindowVAO;
-		//GLuint m_glCompanionWindowIDVertBuffer;
-		//GLuint m_glCompanionWindowIDIndexBuffer;
-		//unsigned int m_uiCompanionWindowIndexSize;
-		//int m_iValidPoseCount;
-		//Error Handling
+		//ActionMode CurrentActionMode = None;
 	};
 
 }

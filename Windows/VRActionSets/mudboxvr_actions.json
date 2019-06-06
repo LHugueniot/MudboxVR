@@ -2,10 +2,14 @@
       "default_bindings": [
          {
             "controller_type" : "vive_controller",
-            "binding_url" : "hellovr_bindings_vive_controller.json"
+            "binding_url" : "mudboxvr_bindings_vive_controller.json"
          }
-      ], 
+      ],
   "actions": [
+    {
+      "name": "/actions/demo/in/ToggleWireframe",
+      "type": "boolean"
+    },
     {
       "name": "/actions/demo/in/HideCubes",
       "type": "boolean"
