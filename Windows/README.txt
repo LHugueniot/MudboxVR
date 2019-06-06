@@ -5,6 +5,9 @@ TODO:
 -mbvrmESH solve dirty vertex 
 -Solve depth testing issue
 -Figure out whats hapening to the normals
+-Finish implementing generic VRMesh class
+-get visible paint brush
+-get sculpting to work
 
 BUGS:
 

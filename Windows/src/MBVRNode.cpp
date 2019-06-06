@@ -10,7 +10,13 @@ namespace mudbox {
 	MBVRNode::MBVRNode() :	m_eEachTick(this),
 							vertexArrObj(QGLBuffer::VertexBuffer),
 							vertexIndexObj(QGLBuffer::IndexBuffer),
-							vertexColoursObj(QGLBuffer::VertexBuffer)
+							vertexColoursObj(QGLBuffer::VertexBuffer),
+							WorldSpaceAdjuster (
+							100.f, 0.0f, 0.0f, 0.0f,
+							0.0f, 100.f, 0.0f, 0.0f,
+							0.0f, 0.0f, 100.f, 0.0f,
+							0.0f, 0.0f, 0.0f, 1.0f
+							)
 
 	{
 		m_eEachTick.Connect(Kernel()->ViewPort()->PostRenderEvent);

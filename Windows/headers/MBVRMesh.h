@@ -19,7 +19,7 @@ namespace mudbox {
 
 		virtual bool InitializeShader(QString _vertShaderName, QString _fragShaderName) = 0;
 
-		virtual Geometry & getGeometry();
+		virtual Geometry & getGeometry() = 0;
 
 		virtual QVector3D getHeadPos(QMatrix4x4 & ModelMat4x4, QMatrix4x4 & WorldScaleMat4x4) = 0;
 
@@ -72,6 +72,62 @@ namespace mudbox {
 		QGLBuffer m_TCBuffer;
 		GLuint m_nTCBufferId;
 		AxisAlignedBoundingBox * AABB;
+
+	};
+
+	class CustomVRMesh : public VRMesh
+	{
+	public:
+		CustomVRMesh();
+		~CustomVRMesh();
+
+		bool SendDataToGPU();
+
+		Geometry & getGeometry();
+		bool GeomInitialize(Geometry * _Geometry);
+		void DrawGL(QMatrix4x4 & ModelMat4x4, QMatrix4x4 & ProjMat4x4, QMatrix4x4 & WorldScaleMat4x4);
+		bool CheckIfGeomStillExists();
+		bool InitializeShader(QString _vertShaderName, QString _fragShaderName);
+		QVector3D getHeadPos(QMatrix4x4 & ModelMat4x4, QMatrix4x4 & WorldScaleMat4x4);
+
+	protected:
+
+		//What shader program to use
+		QGLShaderProgram * m_ShaderProgram;
+
+		//Face Stuff
+		unsigned int *m_FaceIndex;
+		unsigned int m_faceType;
+		unsigned int m_nFaceCount;
+		unsigned int m_nFaceIndices;
+		QGLBuffer m_FaceIndexObj;
+		GLuint m_nFaceIndexId;
+
+		//Vertice stuff
+		uint m_nNumVerts;
+		GLshort m_nTotalVerts;
+
+		float *m_vPos = NULL;
+		QGLBuffer m_VertexArrayObj;
+		GLuint m_nVertexArrayId;
+
+		//Normal Stuff
+		float *m_vNormal = NULL;
+		QGLBuffer m_VertexNormalObj;
+		GLuint m_nVertexNormalId;
+
+		//Colour stuff
+		float *m_vColour = NULL;
+		QGLBuffer m_VertexColourObj;
+		GLuint m_nVertexColourId;
+
+		//TextureCoord stuff
+		unsigned int m_nTC;
+		float *m_vTC = NULL;
+		QGLBuffer m_TCBuffer;
+		GLuint m_nTCBufferId;
+
+		Matrix WorldTransform;
 
 	};
 

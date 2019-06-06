@@ -103,8 +103,11 @@ namespace mudbox {
 		QGLBuffer vertexIndexObj;
 		QGLBuffer vertexColoursObj;
 
-
 		std::vector<VRMesh*> m_mbvrMeshes;
+
+		//World Space Adjustment Matrix
+
+		Matrix WorldSpaceAdjuster;
 
 
 		//-----------------------------------------------------------------------------

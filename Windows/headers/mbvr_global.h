@@ -105,15 +105,6 @@ namespace mudbox {
 
 	bool GetDigitalActionRisingEdge(vr::VRActionHandle_t action, vr::VRInputValueHandle_t *pDevicePath = nullptr);
 
-	//World Space Adjustment Matrix
-
-	extern Matrix WorldSpaceAdjuster =
-	{
-		100.f, 0.0f, 0.0f, 0.0f,
-		0.0f, 100.f, 0.0f, 0.0f,
-		0.0f, 0.0f, 100.f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-	};
 
 	//Controller Info struct and array
 
