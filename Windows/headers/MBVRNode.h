@@ -1,7 +1,9 @@
 #pragma once
 #include "VRViewport.h"
 #include "MBVRMesh.h"
+#include "MBVRPicker.h"
 #include <unordered_set>
+
 namespace mudbox {
 
 	//----------------------------------------------------------------------MBVRNode------------------------------------------------------------------------
@@ -19,7 +21,7 @@ namespace mudbox {
 		bool Initialized=false;
 
 	//-----------------------------------------------------------------------------
-	// MudBox Stuff
+	// MudBox Methods and data
 	//-----------------------------------------------------------------------------
 
 	public:
@@ -31,14 +33,15 @@ namespace mudbox {
 		aevent m_eEachTick;
 		aevent frameUpdate;
 		aevent m_newMeshAdded;
+
+		aevent m_VRBrushStrokeBegin;
+		aevent m_VRBrushStrokeEnd;
+
 		uint framecount=0;
 		uint tick=0;
 
-		Vector *Original_pos;
-
-
 	//-----------------------------------------------------------------------------
-	// VR Stuff
+	// OpenVR Methods and data
 	//-----------------------------------------------------------------------------
 
 	public:
@@ -55,7 +58,7 @@ namespace mudbox {
 
 
 	//-----------------------------------------------------------------------------
-	// OpenGL Stuff
+	// OpenGL Methods and data
 	//-----------------------------------------------------------------------------
 
 	public:
@@ -78,13 +81,11 @@ namespace mudbox {
 		Texture* m_rightEyeTexture;
 		GLuint m_rightEyeID;
 
-		Camera * m_originalCamera;
-
-		bool BWireframe;
+		bool BWireframe =false;
 
 
 		//-----------------------------------------------------------------------------
-		// Geometry handling Stuff
+		// Geometry handling Methods and data
 		//-----------------------------------------------------------------------------
 	public:
 
@@ -109,9 +110,20 @@ namespace mudbox {
 
 		Matrix WorldSpaceAdjuster;
 
+		//--------------------------Grid stuff--------------------
+		bool SetupGridGeometry();
+
+		void DrawGrid();
+
+		float * m_GridVert;
+		QGLBuffer m_GridVertArray;
+		unsigned int m_GridVertArraySize;
+
+		float * m_GridColour;
+		QGLBuffer m_GridColourArray;
 
 		//-----------------------------------------------------------------------------
-		// VR controller Stuff
+		// VR controller Methods and data
 		//-----------------------------------------------------------------------------
 	public:
 
@@ -121,10 +133,19 @@ namespace mudbox {
 
 		void ProcessVREvent(vr::VREvent_t vr_event);
 
+		bool SetupControllerGeometry();
+
+		void DrawVRController();
+
+		RightHandMesh * m_RightHand;
+
+		//std::vector<RightHandMesh*> m_vrControllerMeshes;
 
 		ControllerInfo_t m_rHand[2];
 
 		//Other Actions
+
+		vr::VRActionHandle_t m_actionRightHandTrigger = vr::k_ulInvalidActionHandle;
 
 		vr::VRActionHandle_t m_actionToggleWireframe = vr::k_ulInvalidActionHandle;
 		vr::VRActionHandle_t m_actionHideCubes = vr::k_ulInvalidActionHandle;
@@ -134,15 +155,31 @@ namespace mudbox {
 
 		vr::VRActionSetHandle_t m_actionsetDemo = vr::k_ulInvalidActionSetHandle;
 
-		//enum ActionMode
-		//{
-		//	None,
-		//	Paint,
-		//	Transform,
-		//	Model
-		//};
-		//
-		//ActionMode CurrentActionMode = None;
+		VRMesh *CurrentPickedMesh = NULL;
+		VRPicker *VRBrushPicker;
+
+		void VRBrushStrokeBegin();
+		void VRBrushStrokeAction();
+		void VRBrushStrokeEnd();
+
+		bool BrushStrokeAction = false;
+
+		bool FloodMesh = false;
+
+		aptr<BrushOperation> VRSelectedBrush;
+		//BrushOperation * VRSelectedBrush;
+		std::vector<SurfacePoint *> m_SurfacePointBuffer;
+
+		SurfacePoint * CurrentSurfacePoint;
+
+		Vector *Original_pos;
+
+		bool IsIntersecting = true;
+		Vector IntersectionPoint;
+
+		void DrawIntersectionPoint(vr::Hmd_Eye nEye);
+		void LogBrushStats();
+
 	};
 
 }

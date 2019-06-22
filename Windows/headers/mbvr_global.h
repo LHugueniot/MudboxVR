@@ -3,7 +3,9 @@
 
 #endif // MBVR_GLOBAL_H
 
-#define TESTING 1
+#pragma once
+#define TESTING 0
+
 
 //-------------------------Mudbox Includes------------------------
 
@@ -35,16 +37,13 @@
 #include <stdarg.h>
 
 
-
-	//-------------------------------------------------------------
-	//----------------------				-----------------------
-	//-------------------------------------------------------------
-
 namespace mudbox {
 
 	//-------------------------------------------------------------
 	//--					Helper Functions					 --
 	//-------------------------------------------------------------
+
+	
 
 	//----------------------Debugging Functions--------------------
 
@@ -63,14 +62,23 @@ namespace mudbox {
 	void logMud(T msg)
 	{
 		Kernel()->Log(QVariant(msg).toString() + "\n");
-	}	
+	}
+
+	template <typename T>
+	void HUDPrintMud(T msg)
+	{
+		Kernel()->Interface()->HUDMessageShow(QVariant(msg).toString(), Interface::HUDMessageType::HUDmsgPin);
+	}
 
 	void logMud(std::string msg);
 
 	void logMatrix(Matrix _matrix, std::string _nameOfMatrix);
 
+	void logVector(Vector _vector, std::string _nameOfVector);
+
 	void GLDebug(uint breakPointIndex, std::string funcName);
 
+#define HUDPRINT(msg) do if (TESTING == 1){ HUDPrintMud(msg); }while(0)
 #define DEBUG(msg) do if (TESTING == 1){ logMud(msg); }while(0)
 #define PRINT(msg) do if (TESTING == 1){ printMud(msg); }while(0)
 #define BREAKPOINT() do if (TESTING == 1){  breakPoint(__LINE__, __FUNCTION__); }while(0)

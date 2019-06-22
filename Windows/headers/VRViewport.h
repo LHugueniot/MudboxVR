@@ -1,5 +1,5 @@
 #pragma once
-#include "VRHead.h"
+#include "MBVRHead.h"
 
 namespace mudbox {
 
@@ -25,6 +25,3 @@ namespace mudbox {
 	};
 
 }
-
-
-

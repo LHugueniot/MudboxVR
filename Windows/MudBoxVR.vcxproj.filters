@@ -26,9 +26,6 @@
     <ClCompile Include="src\MBVRWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\VRHead.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\VRViewport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -38,7 +35,10 @@
     <ClCompile Include="src\MBVRMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MBVRShader.cpp">
+    <ClCompile Include="src\MBVRHead.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MBVRPicker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -55,16 +55,16 @@
     <ClInclude Include="headers\VRViewport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\VRHead.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="headers\MBVRWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\MBVRMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="headers\MBVRShader.h">
+    <ClInclude Include="headers\MBVRHead.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\MBVRPicker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -10,7 +10,8 @@ namespace mudbox
 		~VRHead();
 		bool SetupEyes();
 		void UpdateHMDMatrixPose();
-
+		void SetWorldTransform(Matrix _WorldScale);
+		Matrix GetOriginalPosition();
 		//Real Time Updates
 		Matrix GetHMDMatrixPoseEye(vr::Hmd_Eye nEye);
 		Matrix GetHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
@@ -38,7 +39,9 @@ namespace mudbox
 		Matrix m_mat4ProjectionLeft;
 		Matrix m_mat4ProjectionRight;
 
-		Matrix WorldScale;
+		Matrix m_WorldScale;
+		Matrix m_OriginalPose;
+		Vector m_DefaultCamPos;
 
 		vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
 

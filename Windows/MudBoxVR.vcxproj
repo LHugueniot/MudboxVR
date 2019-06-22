@@ -22,20 +22,20 @@
     <ClCompile Include="src\HelperFunctions.cpp" />
     <ClCompile Include="src\MBVRMesh.cpp" />
     <ClCompile Include="src\MBVRNode.cpp" />
-    <ClCompile Include="src\MBVRShader.cpp" />
+    <ClCompile Include="src\MBVRPicker.cpp" />
     <ClCompile Include="src\MBVRWidget.cpp" />
     <ClCompile Include="src\MudboxVR.cpp" />
-    <ClCompile Include="src\VRHead.cpp" />
+    <ClCompile Include="src\MBVRHead.cpp" />
     <ClCompile Include="src\VRViewport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\MBVRMesh.h" />
     <ClInclude Include="headers\MBVRNode.h" />
-    <ClInclude Include="headers\MBVRShader.h" />
+    <ClInclude Include="headers\MBVRPicker.h" />
     <ClInclude Include="headers\MBVRWidget.h" />
     <ClInclude Include="headers\mbvr_global.h" />
     <ClInclude Include="headers\MudboxVR.h" />
-    <ClInclude Include="headers\VRHead.h" />
+    <ClInclude Include="headers\MBVRHead.h" />
     <ClInclude Include="headers\VRViewport.h" />
   </ItemGroup>
   <ItemGroup>

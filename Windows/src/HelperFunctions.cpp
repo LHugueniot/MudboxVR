@@ -9,6 +9,11 @@ namespace mudbox
 
 	//----------------------Debugging Functions--------------------
 
+	void HUDPrintMud(std::string msg)
+	{
+		Kernel()->Interface()->HUDMessageShow(QString(msg.c_str()), Interface::HUDMessageType::HUDmsgPin);
+	}
+
 	void breakPoint(uint breakPointIndex, std::string funcName)
 	{
 		std::string msg(funcName + " Breakpoint " + std::to_string(breakPointIndex));
@@ -55,6 +60,16 @@ namespace mudbox
 			"| " + _13 + ", " + _23 + ", " + _33 + ", " + _43 + "|\n" +
 			"| " + _14 + ", " + _24 + ", " + _34 + ", " + _44 + "|\n";
 
+		Kernel()->Log(QString::fromStdString(msg));
+	}
+
+	void logVector(Vector _vector, std::string _nameOfVector)
+	{
+		auto x = std::to_string(_vector.x);
+		auto y = std::to_string(_vector.y);
+		auto z = std::to_string(_vector.z);
+
+		std::string msg = _nameOfVector + ": x = " + x + " y = " + y + " z = " + z + "\n";
 		Kernel()->Log(QString::fromStdString(msg));
 	}
 

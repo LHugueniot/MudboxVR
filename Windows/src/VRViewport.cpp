@@ -1,4 +1,5 @@
 #include "VRViewport.h"
+#include "QWidget"
 
 namespace mudbox 
 {

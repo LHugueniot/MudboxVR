@@ -27,21 +27,11 @@
       ],
 
 
-      "sources": [ 
+      "sources": [ // -- begin sources --
         {
           "inputs": {
             "click": {
-              "output": "/actions/demo/in/togglewireframe"
-            }
-          },
-          "mode": "button",
-          "path": "/user/hand/right/input/trigger"
-        },
-
-        {
-          "inputs": {
-            "click": {
-              "output": "/actions/demo/in/hidecubes"
+              "output": "/actions/demo/in/righthandtrigger"
             }
           },
           "mode": "button",
@@ -58,15 +48,25 @@
           "path": "/user/hand/right/input/trackpad"
         },
 
-        {
+        { //-- Right hand grab ---------
+          "inputs": {
+            "click": {
+              "output": "/actions/demo/in/righthandgrab"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        }, //---------------------------
+
+        { //-- Left hand grab ----------
           "inputs": {
             "click": {
               "output": "/actions/demo/in/triggerhaptic"
             }
           },
           "mode": "button",
-          "path": "/user/hand/right/input/grip"
-        },
+          "path": "/user/hand/left/input/grip"
+        }, //---------------------------
 
         {
           "inputs": {
@@ -76,16 +76,6 @@
           },
           "mode": "button",
           "path": "/user/hand/left/input/trigger"
-        },
-
-        {
-          "inputs": {
-            "click": {
-              "output": "/actions/demo/in/triggerhaptic"
-            }
-          },
-          "mode": "button",
-          "path": "/user/hand/left/input/grip"
         },
 
         {
@@ -107,7 +97,7 @@
           "mode": "button",
           "path": "/user/hand/right/input/application_menu"
         }
-      ]
+      ] // -- end sources --
 
     }
   },

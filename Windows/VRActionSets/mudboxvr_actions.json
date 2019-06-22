@@ -11,6 +11,10 @@
       "type": "boolean"
     },
     {
+      "name": "/actions/demo/in/RightHandTrigger",
+      "type": "boolean"
+    },
+    {
       "name": "/actions/demo/in/HideCubes",
       "type": "boolean"
     },

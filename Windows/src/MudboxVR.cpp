@@ -10,6 +10,9 @@ namespace mudbox {
 	QGLContext * MBVRNode::MBVRGLContext = NULL;
 	vr::IVRSystem * MBVRNode::vr_pointer = NULL;
 	vr::IVRCompositor * MBVRNode::vr_compositor = NULL;
+	Texture * VRMesh::DefaultMat = NULL;
+	int VRMesh::DrawMode = 1;
+
 	//----------------------------------------------------------------------MudboxVR------------------------------------------------------------------------
 
 	//void OutputGLState()

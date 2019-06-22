@@ -1,4 +1,4 @@
-#include "VRHead.h"
+#include "MBVRHead.h"
 
 namespace mudbox
 {
@@ -7,18 +7,22 @@ namespace mudbox
 		m_fNearClip(_fNearClip),
 		m_fFarClip(_fFarClip)
 	{
-		WorldScale = { 1.0f, 0.f, 0.f, 0.f,
-					  0.f, 1.0f, 0.f, 0.f,
-					  0.f, 0.f, 1.0f, 0.f,
-					  0.f, 0.f, 0.f,  1.f};
+		//WorldScale = { 1.0f, 0.f, 0.f, 0.f,
+		//			  0.f, 1.0f, 0.f, 0.f,
+		//			  0.f, 0.f, 1.0f, 0.f,
+		//			  0.f, 0.f, 0.f,  1.f};
 		std::string Dimensions("m_fNearClip " + std::to_string(m_fNearClip)+ " m_fFarClip " + std::to_string(m_fFarClip) + "\n");
 		PRINT(Dimensions);
 		DEBUG(Dimensions);
 	}
 
-
 	VRHead::~VRHead()
 	{
+	}
+
+	void VRHead::SetWorldTransform(Matrix _WorldScale)
+	{
+		m_WorldScale = _WorldScale;
 	}
 
 	bool VRHead::SetupEyes()
@@ -28,12 +32,26 @@ namespace mudbox
 		printMud("Starting SetupEyes\n");
 		logMud("Starting SetupEyes\n");
 
+		vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+
 		m_mat4ProjectionLeft = GetHMDMatrixProjectionEye(vr::Eye_Left);
 		m_mat4ProjectionRight = GetHMDMatrixProjectionEye(vr::Eye_Right);
 		m_mat4eyePosLeft = GetHMDMatrixPoseEye(vr::Eye_Left);
 		m_mat4eyePosRight = GetHMDMatrixPoseEye(vr::Eye_Right);
 
+		m_OriginalPose = ConvertSteamVRMatrixToMatrix(m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+		m_OriginalPose._41 *= 100;
+		m_OriginalPose._42 *= 100;
+		m_OriginalPose._43 *= 100;
+
+		m_DefaultCamPos = { 0, 100, 100 };
+
 		return true;
+	}
+
+	Matrix VRHead::GetOriginalPosition()
+	{
+		return m_OriginalPose;
 	}
 
 	//Matrix VRHead::GetControllerPose(EHand hand)
@@ -172,13 +190,10 @@ namespace mudbox
 
 		vr::VRCompositor()->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
 
-		//m_iValidPoseCount = 0;
-		//m_strPoseClasses = "";
 		for (int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
 		{
 			if (m_rTrackedDevicePose[nDevice].bPoseIsValid)
 			{
-				//m_iValidPoseCount++;
 				m_rmat4DevicePose[nDevice] = ConvertSteamVRMatrixToMatrix(m_rTrackedDevicePose[nDevice].mDeviceToAbsoluteTracking);
 				if (m_rDevClassChar[nDevice] == 0)
 				{
@@ -192,18 +207,20 @@ namespace mudbox
 					default:                                       m_rDevClassChar[nDevice] = '?'; break;
 					}
 				}
-				//m_strPoseClasses += m_rDevClassChar[nDevice];
 			}
 		}
 
 		if (m_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
 		{
 			m_mat4HMDPose = m_rmat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd];
-			m_mat4HMDPose._41 *= 100;
-			m_mat4HMDPose._42 *= 100;
-			m_mat4HMDPose._43 *= 100;
+			m_mat4HMDPose._41 *= 500;
+			m_mat4HMDPose._42 *= 500;
+			m_mat4HMDPose._43 *= 500;
+
 			m_mat4HMDPose.Invert();
-			//m_mat4HMDPose = WorldScale * m_mat4HMDPose;
+
+			m_mat4ProjectionLeft = GetHMDMatrixProjectionEye(vr::Eye_Left);
+			m_mat4ProjectionRight = GetHMDMatrixProjectionEye(vr::Eye_Right);
 		}
 	}
 
